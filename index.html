@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Time Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom right, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 0.95em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+
+        .tab.active {
+            color: #0f172a;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab:hover {
+            color: #0f172a;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            color: #0f172a;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            color: #0f172a;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+
+        .button:hover {
+            background: #2563eb;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .button.secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .button.secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .button.large {
+            padding: 16px 24px;
+            font-size: 1.1em;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .test-area {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .test-area.ready {
+            background: #dcfce7;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .status-text {
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .reaction-display {
+            font-size: 3.5em;
+            font-weight: 700;
+            color: #3b82f6;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .test-button {
+            padding: 20px 30px;
+            font-size: 1.1em;
+            min-height: 60px;
+        }
+
+        .test-button.waiting {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .test-button.ready {
+            background: #10b981;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            color: #0f172a;
+            font-size: 1.8em;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .attempts-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .attempt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9em;
+        }
+
+        .attempt-item:last-child {
+            border-bottom: none;
+        }
+
+        .attempt-index {
+            color: #94a3b8;
+            font-weight: 500;
+            min-width: 30px;
+        }
+
+        .attempt-time {
+            color: #3b82f6;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.9em;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .message.info {
+            background: #bfdbfe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reaction-display {
+                font-size: 2.5em;
+            }
+
+            .test-button {
+                padding: 16px 24px;
+                font-size: 1em;
+                min-height: 50px;
+            }
+        }
+
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 6v6l4 2"></path></svg>
+            <h1>Reaction Tester</h1>
+        </div>
+        <p class="subtitle">Measure and track your reaction time</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('test')">Test</button>
+            <button class="tab" onclick="switchTab('settings')">Settings</button>
+            <button class="tab" onclick="switchTab('stats')">Statistics</button>
+        </div>
+
+        <!-- TEST TAB -->
+        <div id="test" class="tab-content active">
+
+            <div id="messageContainer"></div>
+
+            <div class="card">
+                <div class="card-title">Ready to Test?</div>
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 0.9em;">
+                    A sound will play after a random delay. Click anywhere in the green box as fast as you can when you hear it.
+                </p>
+                <button class="button large test-button" id="testBtn" onclick="startTest()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Start Test
+                </button>
+            </div>
+
+            <div class="test-area" id="testArea" style="display: none;" onclick="recordReaction()">
+                <div class="status-text" id="status">Waiting...</div>
+                <div class="reaction-display" id="reactionDisplay">—</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Last Time</div>
+                    <div class="stat-value" id="lastTime">—</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Average</div>
+                    <div class="stat-value" id="averageTime">—</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Best Time</div>
+                    <div class="stat-value" id="bestTime">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-title">Sound Selection</div>
+                <div class="form-group">
+                    <label for="soundSelect">Choose Sound:</label>
+                    <select id="soundSelect" onchange="updateSoundPreview()">
+                        <option value="beep">Beep (1000 Hz)</option>
+                        <option value="bell">Bell (800 Hz)</option>
+                        <option value="thrump">Thrump (120 Hz)</option>
+                        <option value="mouse">Mouse Click (3000 Hz)</option>
+                    </select>
+                </div>
+                <button class="button" onclick="previewSound()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+                    Preview Sound
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Test Parameters</div>
+                <div class="form-group">
+                    <label for="minDelay">Minimum Delay (ms):</label>
+                    <input type="number" id="minDelay" value="1000" min="500" step="100">
+                </div>
+                <div class="form-group">
+                    <label for="maxDelay">Maximum Delay (ms):</label>
+                    <input type="number" id="maxDelay" value="5000" min="1000" step="100">
+                </div>
+                <div class="form-group">
+                    <label for="volume">Volume:</label>
+                    <input type="range" id="volume" min="0" max="100" value="70">
+                </div>
+            </div>
+
+            <div class="card">
+                <button class="button secondary" onclick="resetStats()" style="width: 100%; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>
+                    Clear All Statistics
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS TAB -->
+        <div id="stats" class="tab-content">
+            <div class="card">
+                <div class="card-title">Summary</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Total Attempts</div>
+                        <div class="stat-value" id="totalAttempts">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value" id="statAverage">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Best</div>
+                        <div class="stat-value" id="statBest">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Attempt History</div>
+                <div class="attempts-list" id="attemptsList">
+                    <div style="color: #94a3b8; text-align: center; padding: 20px;">No attempts yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let testState = {
+            attempts: [],
+            isRunning: false,
+            soundStartTime: null,
+            testStartTime: null
+        };
+
+        const soundDefinitions = {
+            beep: {
+                name: 'Beep',
+                frequency: 1000,
+                attack: 0.01,
+                decay: 0.2,
+                sustain: 0,
+                release: 0.1,
+                harmonics: [1]
+            },
+            bell: {
+                name: 'Bell',
+                frequency: 800,
+                attack: 0.01,
+                decay: 1.5,
+                sustain: 0.3,
+                release: 0.5,
+                harmonics: [1, 2, 3, 4]
+            },
+            thrump: {
+                name: 'Thrump',
+                frequency: 200,
+                attack: 0.08,
+                decay: 1.2,
+                sustain: 0.25,
+                release: 0.4,
+                harmonics: [1, 0.7, 0.5, 0.3]
+            },
+            mouse: {
+                name: 'Mouse Click',
+                frequency: 3000,
+                attack: 0.001,
+                decay: 0.15,
+                sustain: 0,
+                release: 0.05,
+                harmonics: [1, 1.5]
+            }
+        };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function playSound(soundType) {
+            const sound = soundDefinitions[soundType];
+            const volume = parseFloat(document.getElementById('volume').value) / 100;
+            const duration = 0.5; // 500ms
+
+            const now = audioContext.currentTime;
+            const endTime = now + duration;
+
+            sound.harmonics.forEach((harmonic, index) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+
+                osc.frequency.value = sound.frequency * harmonic;
+                osc.type = index === 0 ? 'sine' : ['square', 'triangle', 'sawtooth'][index % 3];
+
+                const attackEnd = now + sound.attack;
+                const decayEnd = attackEnd + sound.decay;
+                const releaseStart = endTime - sound.release;
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(volume, attackEnd);
+                gain.gain.linearRampToValueAtTime(volume * sound.sustain, decayEnd);
+                gain.gain.setValueAtTime(volume * sound.sustain, releaseStart);
+                gain.gain.linearRampToValueAtTime(0, endTime);
+
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+
+                osc.start(now);
+                osc.stop(endTime);
+            });
+        }
+
+        function previewSound() {
+            if (audioContext.state === 'suspended') audioContext.resume();
+            const sound = document.getElementById('soundSelect').value;
+            playSound(sound);
+        }
+
+        function updateSoundPreview() {
+            // Just show which sound is selected
+        }
+
+        function startTest() {
+            if (testState.isRunning) return;
+            if (audioContext.state === 'suspended') audioContext.resume();
+
+            testState.isRunning = true;
+            const testBtn = document.getElementById('testBtn');
+            testBtn.disabled = true;
+
+            const minDelay = parseInt(document.getElementById('minDelay').value);
+            const maxDelay = parseInt(document.getElementById('maxDelay').value);
+            const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+            const testArea = document.getElementById('testArea');
+            testArea.style.display = 'block';
+            testArea.classList.remove('ready');
+            document.getElementById('status').textContent = `Waiting... (${Math.ceil(delay / 100) / 10}s)`;
+            document.getElementById('reactionDisplay').textContent = '—';
+
+            setTimeout(() => {
+                if (!testState.isRunning) return;
+                const sound = document.getElementById('soundSelect').value;
+                playSound(sound);
+                testState.soundStartTime = performance.now();
+                document.getElementById('status').textContent = 'GO!';
+                document.getElementById('reactionDisplay').textContent = '—';
+                testArea.classList.add('ready');
+            }, delay);
+
+            testBtn.disabled = false;
+        }
+
+        function recordReaction() {
+            if (!testState.isRunning || !testState.soundStartTime) return;
+            if (audioContext.state === 'suspended') audioContext.resume();
+
+            const reactionTime = Math.round(performance.now() - testState.soundStartTime);
+            testState.attempts.push(reactionTime);
+            testState.isRunning = false;
+
+            const testArea = document.getElementById('testArea');
+            testArea.classList.remove('ready');
+            document.getElementById('reactionDisplay').textContent = `${reactionTime}ms`;
+            document.getElementById('lastTime').textContent = `${reactionTime}ms`;
+
+            updateStats();
+
+            setTimeout(() => {
+                document.getElementById('testArea').style.display = 'none';
+            }, 2000);
+        }
+
+        function updateStats() {
+            const attempts = testState.attempts;
+            if (attempts.length === 0) return;
+
+            const avg = Math.round(attempts.reduce((a, b) => a + b) / attempts.length);
+            const best = Math.min(...attempts);
+            const worst = Math.max(...attempts);
+
+            document.getElementById('averageTime').textContent = `${avg}ms`;
+            document.getElementById('bestTime').textContent = `${best}ms`;
+            document.getElementById('totalAttempts').textContent = attempts.length;
+            document.getElementById('statAverage').textContent = `${avg}ms`;
+            document.getElementById('statBest').textContent = `${best}ms`;
+
+            // Update attempts list
+            const list = document.getElementById('attemptsList');
+            list.innerHTML = attempts.map((time, i) => `
+                <div class="attempt-item">
+                    <span class="attempt-index">#${i + 1}</span>
+                    <span class="attempt-time">${time}ms</span>
+                </div>
+            `).reverse().join('');
+        }
+
+        function resetStats() {
+            if (confirm('Are you sure you want to clear all statistics?')) {
+                testState.attempts = [];
+                document.getElementById('lastTime').textContent = '—';
+                document.getElementById('averageTime').textContent = '—';
+                document.getElementById('bestTime').textContent = '—';
+                document.getElementById('totalAttempts').textContent = '0';
+                document.getElementById('statAverage').textContent = '—';
+                document.getElementById('statBest').textContent = '—';
+                document.getElementById('attemptsList').innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">No attempts yet</div>';
+            }
+        }
+
+        // Resume audio context
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') audioContext.resume();
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
