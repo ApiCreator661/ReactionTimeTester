@@ -453,7 +453,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
                     Preview Sound
                 </button>
-                <div class="attribution">High-quality sounds from Pixabay (CC0)</div>
+                <div class="attribution">High-quality synthesized sounds</div>
             </div>
 
             <div class="card">
@@ -530,53 +530,84 @@
         const soundDefinitions = {
             beep: {
                 name: 'Beep',
-                url: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_e2cd26c569.mp3'
+                frequency: 1000,
+                duration: 0.3,
+                attack: 0.01,
+                decay: 0.2,
+                sustain: 0,
+                release: 0.05
             },
             bell: {
                 name: 'Bell',
-                url: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_8d5d5215ba.mp3'
+                frequency: 800,
+                duration: 1.2,
+                attack: 0.02,
+                decay: 1.0,
+                sustain: 0.2,
+                release: 0.4
             },
             thrump: {
                 name: 'Thrump',
-                url: 'https://cdn.pixabay.com/download/audio/2022/11/29/audio_bdf66857a2.mp3'
+                frequency: 150,
+                duration: 0.6,
+                attack: 0.05,
+                decay: 0.5,
+                sustain: 0.1,
+                release: 0.3
             },
             mouse: {
                 name: 'Mouse Click',
-                url: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_c17eb0b4d9.mp3'
+                frequency: 2500,
+                duration: 0.15,
+                attack: 0.001,
+                decay: 0.1,
+                sustain: 0,
+                release: 0.03
             }
         };
 
         async function preloadSounds() {
-            for (const [key, sound] of Object.entries(soundDefinitions)) {
-                try {
-                    const response = await fetch(sound.url);
-                    const arrayBuffer = await response.arrayBuffer();
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    testState.loadedBuffers[key] = audioBuffer;
-                } catch (e) {
-                    console.error(`Failed to load ${key}:`, e);
-                }
-            }
+            return true;
         }
 
         window.addEventListener('load', preloadSounds);
         document.addEventListener('DOMContentLoaded', preloadSounds);
 
         function playSound(soundType) {
-            if (!testState.loadedBuffers[soundType]) {
-                return;
-            }
+            if (!soundDefinitions[soundType]) return;
 
-            const buffer = testState.loadedBuffers[soundType];
+            const sound = soundDefinitions[soundType];
             const volume = parseFloat(document.getElementById('volume').value) / 100;
-            const source = audioContext.createBufferSource();
-            const gainNode = audioContext.createGain();
+            const now = audioContext.currentTime;
+            const duration = sound.duration;
+            const endTime = now + duration;
 
-            source.buffer = buffer;
-            gainNode.gain.value = volume;
-            source.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            source.start(0);
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const filter = audioContext.createBiquadFilter();
+
+            osc.frequency.value = sound.frequency;
+            osc.type = 'sine';
+            
+            filter.type = 'lowpass';
+            filter.frequency.value = 5000;
+
+            const attackEnd = now + sound.attack;
+            const decayEnd = attackEnd + sound.decay;
+            const releaseStart = endTime - sound.release;
+
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(volume, attackEnd);
+            gain.gain.linearRampToValueAtTime(volume * sound.sustain, decayEnd);
+            gain.gain.setValueAtTime(volume * sound.sustain, releaseStart);
+            gain.gain.linearRampToValueAtTime(0, endTime);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.start(now);
+            osc.stop(endTime);
         }
 
         function switchTab(tabName) {
