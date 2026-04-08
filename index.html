@@ -530,6 +530,7 @@
         const soundDefinitions = {
             beep: {
                 name: 'Beep',
+                type: 'synth',
                 frequency: 1000,
                 duration: 0.3,
                 attack: 0.01,
@@ -539,15 +540,12 @@
             },
             bell: {
                 name: 'Bell',
-                frequency: 800,
-                duration: 1.2,
-                attack: 0.02,
-                decay: 1.0,
-                sustain: 0.2,
-                release: 0.4
+                type: 'url',
+                url: 'https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg'
             },
             thrump: {
                 name: 'Thrump',
+                type: 'synth',
                 frequency: 150,
                 duration: 0.6,
                 attack: 0.05,
@@ -557,6 +555,7 @@
             },
             mouse: {
                 name: 'Mouse Click',
+                type: 'synth',
                 frequency: 2500,
                 duration: 0.15,
                 attack: 0.001,
@@ -567,7 +566,18 @@
         };
 
         async function preloadSounds() {
-            return true;
+            for (const [key, sound] of Object.entries(soundDefinitions)) {
+                if (sound.type === 'url') {
+                    try {
+                        const response = await fetch(sound.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                        testState.loadedBuffers[key] = audioBuffer;
+                    } catch (e) {
+                        console.error(`Failed to load ${key}:`, e);
+                    }
+                }
+            }
         }
 
         window.addEventListener('load', preloadSounds);
@@ -578,36 +588,49 @@
 
             const sound = soundDefinitions[soundType];
             const volume = parseFloat(document.getElementById('volume').value) / 100;
-            const now = audioContext.currentTime;
-            const duration = sound.duration;
-            const endTime = now + duration;
 
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            const filter = audioContext.createBiquadFilter();
+            if (sound.type === 'url') {
+                if (!testState.loadedBuffers[soundType]) return;
+                const buffer = testState.loadedBuffers[soundType];
+                const source = audioContext.createBufferSource();
+                const gainNode = audioContext.createGain();
+                source.buffer = buffer;
+                gainNode.gain.value = volume;
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                source.start(0);
+            } else {
+                const now = audioContext.currentTime;
+                const duration = sound.duration;
+                const endTime = now + duration;
 
-            osc.frequency.value = sound.frequency;
-            osc.type = 'sine';
-            
-            filter.type = 'lowpass';
-            filter.frequency.value = 5000;
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
 
-            const attackEnd = now + sound.attack;
-            const decayEnd = attackEnd + sound.decay;
-            const releaseStart = endTime - sound.release;
+                osc.frequency.value = sound.frequency;
+                osc.type = 'sine';
+                
+                filter.type = 'lowpass';
+                filter.frequency.value = 5000;
 
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(volume, attackEnd);
-            gain.gain.linearRampToValueAtTime(volume * sound.sustain, decayEnd);
-            gain.gain.setValueAtTime(volume * sound.sustain, releaseStart);
-            gain.gain.linearRampToValueAtTime(0, endTime);
+                const attackEnd = now + sound.attack;
+                const decayEnd = attackEnd + sound.decay;
+                const releaseStart = endTime - sound.release;
 
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioContext.destination);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(volume, attackEnd);
+                gain.gain.linearRampToValueAtTime(volume * sound.sustain, decayEnd);
+                gain.gain.setValueAtTime(volume * sound.sustain, releaseStart);
+                gain.gain.linearRampToValueAtTime(0, endTime);
 
-            osc.start(now);
-            osc.stop(endTime);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioContext.destination);
+
+                osc.start(now);
+                osc.stop(endTime);
+            }
         }
 
         function switchTab(tabName) {
