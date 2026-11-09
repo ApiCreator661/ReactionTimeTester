@@ -1,797 +1,2107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reaction Time Tester</title>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reflex Labs — Reaction Time Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---------- shadcn tokens (dark) ---------- */
+  :root {
+    --background: 0 0% 3.1%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4.7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5.5%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.5%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --sidebar: 0 0% 4.3%;
+    --success: 158 64% 32%;
+    --radius: 0.625rem;
+    --mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-        }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 700px;
-            width: 100%;
-            animation: slideIn 0.3s ease-out;
-        }
+  html, body { height: 100%; }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
+  ::selection { background: hsl(0 0% 24%); color: hsl(var(--foreground)); }
 
-        h1 {
-            color: #1a1a1a;
-            font-size: 2em;
-            font-weight: 700;
-        }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.01em; }
+  a { color: inherit; }
 
-        .subtitle {
-            color: #666;
-            margin-bottom: 32px;
-            font-size: 0.9em;
-        }
+  .icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .icon.tiny { width: 12px; height: 12px; stroke-width: 1.8; }
+  .icon.sm { width: 14px; height: 14px; }
+  .icon.lg { width: 22px; height: 22px; stroke-width: 1.5; }
 
-        .tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 32px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 0;
-        }
+  kbd {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 1px 5px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 4px;
+    background: hsl(0 0% 9%);
+    color: hsl(var(--muted-foreground));
+    line-height: 1.6;
+  }
 
-        .tab {
-            padding: 12px 16px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #999;
-            font-weight: 500;
-            font-size: 0.95em;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-        }
+  /* ---------- shell ---------- */
+  .app { display: flex; min-height: 100vh; }
 
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
+  .sidebar {
+    width: 272px;
+    flex: 0 0 272px;
+    background: hsl(var(--sidebar));
+    border-right: 1px solid hsl(var(--border));
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 14px 18px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 40;
+  }
 
-        .tab:hover {
-            color: #667eea;
-        }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 38px;
+    padding: 0 8px;
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+  }
+  .brand .brand-mark { width: 17px; height: 17px; stroke-width: 1.7; }
 
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.2s ease-in;
-        }
+  .quick-row { display: flex; gap: 6px; margin-top: 12px; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+  .quick-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: calc(var(--radius) - 4px);
+    border: 1px solid hsl(0 0% 18%);
+    background: hsl(0 0% 16%);
+    color: hsl(0 0% 95%);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .quick-btn:hover { background: hsl(0 0% 20%); border-color: hsl(0 0% 24%); }
+  .quick-btn:active { background: hsl(0 0% 23%); }
+  .quick-btn .icon { width: 15px; height: 15px; }
 
-        .tab-content.active {
-            display: block;
-        }
+  .square-btn {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: calc(var(--radius) - 4px);
+    border: 1px solid hsl(0 0% 18%);
+    background: hsl(0 0% 16%);
+    color: hsl(0 0% 92%);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .square-btn:hover { background: hsl(0 0% 20%); }
+  .square-btn.is-muted { color: hsl(0 0% 52%); }
 
-        .card {
-            background: #f8f9fa;
-            border: 1px solid #e8e8e8;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            transition: all 0.2s;
-        }
+  .nav { display: flex; flex-direction: column; gap: 2px; margin-top: 16px; }
 
-        .card:hover {
-            border-color: #ddd;
-        }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    height: 33px;
+    padding: 0 9px;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: hsl(0 0% 66%);
+    font-size: 13.5px;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .nav-item .icon { width: 16px; height: 16px; opacity: 0.85; }
+  .nav-item:hover { background: hsl(0 0% 9.5%); color: hsl(var(--foreground)); }
+  .nav-item.active {
+    background: hsl(0 0% 13%);
+    border-color: hsl(0 0% 17%);
+    color: hsl(var(--foreground));
+  }
+  .nav-item.active .icon { opacity: 1; }
 
-        .card-title {
-            color: #1a1a1a;
-            font-weight: 600;
-            margin-bottom: 16px;
-            font-size: 0.95em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  .nav-label {
+    padding: 0 9px;
+    margin: 22px 0 8px;
+    font-size: 12px;
+    color: hsl(0 0% 52%);
+    letter-spacing: 0.01em;
+  }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+  .sidebar-footer { margin-top: auto; padding: 18px 9px 0; }
+  .footer-meta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: hsl(0 0% 46%); }
+  .footer-meta .dot { opacity: 0.6; }
 
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: hsl(0 0% 0% / 0.65);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 30;
+  }
 
-        label {
-            display: block;
-            color: #1a1a1a;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-        }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-        select, input[type="number"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95em;
-            font-family: inherit;
-            transition: all 0.2s;
-            background: white;
-        }
+  .topbar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+    border-bottom: 1px solid hsl(var(--border));
+    position: sticky;
+    top: 0;
+    background: hsl(var(--background) / 0.88);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+  }
+  .topbar h1 { font-size: 14.5px; font-weight: 500; }
 
-        select:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+  .ghost-icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 5px);
+    background: transparent;
+    color: hsl(0 0% 74%);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .ghost-icon:hover { background: hsl(0 0% 11%); color: hsl(var(--foreground)); }
 
-        .button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 0.95em;
-        }
+  .topbar-spacer { flex: 1; }
+  .kbd-hint { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: hsl(0 0% 48%); }
 
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
+  .content {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    width: 100%;
+  }
 
-        .button:active {
-            transform: translateY(0);
-        }
+  .view { display: none; flex-direction: column; gap: 20px; }
+  .view.active { display: flex; animation: viewIn 0.22s ease; }
 
-        .button.secondary {
-            background: #e8e8e8;
-            color: #1a1a1a;
-        }
+  @keyframes viewIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
 
-        .button.secondary:hover {
-            background: #d8d8d8;
-            box-shadow: none;
-        }
+  /* ---------- primitives ---------- */
+  .card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
 
-        .button.large {
-            padding: 14px 24px;
-            font-size: 1em;
-            width: 100%;
-            justify-content: center;
-        }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: calc(var(--radius) - 3px);
+    border: 1px solid transparent;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:hover { background: hsl(0 0% 88%); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.secondary { background: hsl(0 0% 10%); color: hsl(var(--foreground)); border-color: hsl(var(--border)); }
+  .btn.secondary:hover { background: hsl(0 0% 14%); }
+  .btn.ghost { background: transparent; border-color: hsl(var(--border)); color: hsl(0 0% 82%); }
+  .btn.ghost:hover { background: hsl(0 0% 10%); color: hsl(var(--foreground)); }
+  .btn.destructive { background: hsl(0 0% 9%); border-color: hsl(0 55% 30%); color: hsl(0 70% 72%); }
+  .btn.destructive:hover { background: hsl(0 45% 13%); color: hsl(0 75% 78%); }
+  .btn.wide { width: 100%; }
 
-        .button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 21px;
+    padding: 0 6px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background: hsl(0 0% 6% / 0.7);
+    color: hsl(0 0% 86%);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .badge .icon { width: 11px; height: 11px; stroke-width: 2; opacity: 0.8; }
+  .badge.subtle { color: hsl(var(--muted-foreground)); }
 
-        .test-area {
-            text-align: center;
-            padding: 50px 30px;
-            background: #f0f0f0;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.3s;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
+  .rating-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    border: 1px solid hsl(var(--border));
+    font-size: 11.5px;
+    color: hsl(0 0% 84%);
+  }
+  .rating-pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.9; }
+  .rating-pill.fast { color: hsl(152 55% 66%); border-color: hsl(152 40% 24%); background: hsl(152 45% 9%); }
+  .rating-pill.avg { color: hsl(42 70% 70%); border-color: hsl(42 40% 24%); background: hsl(42 45% 8%); }
+  .rating-pill.slow { color: hsl(8 65% 70%); border-color: hsl(8 45% 26%); background: hsl(8 40% 9%); }
 
-        .test-area.ready {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
-            animation: readyPulse 0.6s ease-out;
-        }
+  /* ---------- metrics ---------- */
+  .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 
-        @keyframes readyPulse {
-            0% {
-                transform: scale(0.98);
-                opacity: 0.9;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+  .metric { padding: 18px 20px 20px; display: flex; flex-direction: column; }
+  .metric-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .metric-label { font-size: 12.5px; color: hsl(0 0% 66%); }
+  .metric-value {
+    margin-top: 12px;
+    font-size: 29px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: hsl(0 0% 99%);
+  }
+  .metric-value .unit { font-size: 16px; font-weight: 500; color: hsl(0 0% 68%); margin-left: 4px; letter-spacing: 0; }
+  .metric-note {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: hsl(0 0% 78%);
+  }
+  .metric-note .icon { width: 11px; height: 11px; opacity: 0.65; }
+  .metric-sub { margin-top: 2px; font-size: 12px; color: hsl(0 0% 52%); }
 
-        .test-area.hidden {
-            display: none !important;
-        }
+  /* ---------- chart ---------- */
+  .chart-link { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 20px 6px; }
+  .card-title { font-size: 15.5px; font-weight: 500; color: hsl(0 0% 97%); }
+  .card-desc { margin-top: 3px; font-size: 12px; color: hsl(0 0% 50%); }
 
-        .status-text {
-            color: #666;
-            margin-bottom: 16px;
-            font-size: 0.95em;
-        }
+  .select-wrap { position: relative; display: inline-flex; }
+  .select-wrap select {
+    appearance: none;
+    height: 32px;
+    padding: 0 30px 0 11px;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 3px);
+    background: hsl(0 0% 7%);
+    color: hsl(0 0% 88%);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .select-wrap select:hover { background: hsl(0 0% 10%); }
+  .select-wrap select:focus-visible { outline: none; border-color: hsl(0 0% 40%); }
+  .select-wrap .select-caret {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: hsl(0 0% 55%);
+  }
+  .select-wrap select option { background: hsl(0 0% 7%); color: hsl(0 0% 92%); }
 
-        .test-area.ready .status-text {
-            color: white;
-        }
+  .chart-body { position: relative; height: 320px; margin: 10px 10px 6px; }
+  .chart-body canvas { display: block; width: 100%; height: 100%; }
+  .chart-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 12.5px;
+    color: hsl(0 0% 44%);
+    text-align: center;
+    padding: 0 24px;
+    pointer-events: none;
+  }
 
-        .reaction-display {
-            font-size: 3em;
-            font-weight: 700;
-            color: #667eea;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-        }
+  /* ---------- surface / test ---------- */
+  .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 20px 0; }
+  .card-body { padding: 14px 20px 20px; }
+  .head-actions { display: flex; align-items: center; gap: 8px; }
 
-        .test-area.ready .reaction-display {
-            color: white;
-        }
+  .surface {
+    position: relative;
+    min-height: 344px;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    background:
+      radial-gradient(110% 100% at 50% 0%, hsl(0 0% 9%) 0%, hsl(0 0% 5.5%) 58%, hsl(0 0% 4.5%) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 36px 24px;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+    transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+  .surface:focus-visible { outline: none; border-color: hsl(0 0% 35%); }
+  .surface-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 460px; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+  .surface-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    border: 1px solid hsl(var(--border));
+    background: hsl(0 0% 9%);
+    color: hsl(0 0% 86%);
+  }
+  .surface-icon .icon { width: 17px; height: 17px; margin-left: 2px; }
+  .surface-icon.hidden { display: none; }
 
-        .stat-box {
-            background: #f0f0f0;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-            transition: all 0.2s;
-        }
+  .surface-title { font-size: 17px; font-weight: 500; color: hsl(0 0% 96%); letter-spacing: -0.01em; }
+  .surface-sub { font-size: 12.5px; color: hsl(0 0% 55%); }
+  .surface-meta { margin-top: 6px; font-size: 11.5px; color: hsl(0 0% 42%); }
 
-        .stat-box:hover {
-            background: #e8e8e8;
-        }
+  .surface-reading {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: 54px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: hsl(0 0% 100%);
+  }
+  .surface-reading .reading-unit { font-size: 18px; font-weight: 400; color: hsl(0 0% 62%); }
+  .surface-reading[hidden] { display: none; }
 
-        .stat-label {
-            color: #999;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  .surface.state-waiting { border-color: hsl(0 0% 18%); background: radial-gradient(110% 100% at 50% 0%, hsl(0 0% 10%) 0%, hsl(0 0% 5%) 65%); }
+  .surface.state-waiting .surface-title { color: hsl(0 0% 80%); }
+  .surface.state-waiting .surface-title::after {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    margin-left: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    animation: blink 1s steps(2, end) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
 
-        .stat-value {
-            color: #667eea;
-            font-size: 1.6em;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-        }
+  .surface.state-go {
+    border-color: hsl(155 60% 30%);
+    background: radial-gradient(120% 120% at 50% 0%, hsl(157 62% 30%) 0%, hsl(158 64% 24%) 60%, hsl(160 60% 19%) 100%);
+    box-shadow: 0 0 0 1px hsl(155 60% 35% / 0.35), 0 24px 70px -28px hsl(156 70% 40% / 0.55);
+  }
+  .surface.state-go .surface-title { font-size: 46px; letter-spacing: 0.02em; color: hsl(0 0% 100%); }
+  .surface.state-go .surface-sub { color: hsl(155 40% 88%); }
+  .surface.state-go .surface-meta { color: hsl(155 35% 78%); }
+  .surface.state-go .surface-icon { border-color: hsl(155 45% 40%); background: hsl(155 50% 22%); color: hsl(0 0% 100%); }
 
-        .attempts-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #e8e8e8;
-            border-radius: 8px;
-            padding: 12px;
-            background: #fafafa;
-        }
+  .surface.state-early {
+    border-color: hsl(0 55% 32%);
+    background: radial-gradient(120% 120% at 50% 0%, hsl(0 45% 16%) 0%, hsl(0 40% 9%) 70%);
+  }
+  .surface.state-early .surface-title { color: hsl(0 75% 78%); }
+  .surface.state-early .surface-icon { border-color: hsl(0 45% 32%); background: hsl(0 40% 14%); color: hsl(0 70% 76%); }
 
-        .attempts-list::-webkit-scrollbar {
-            width: 6px;
-        }
+  .test-hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding-top: 14px;
+    font-size: 11.5px;
+    color: hsl(0 0% 44%);
+  }
+  .test-hint span { display: inline-flex; align-items: center; gap: 6px; }
 
-        .attempts-list::-webkit-scrollbar-track {
-            background: #f0f0f0;
-            border-radius: 10px;
-        }
+  /* ---------- generic card sections ---------- */
+  .section-title { font-size: 13.5px; font-weight: 500; color: hsl(0 0% 92%); }
+  .section-desc { font-size: 12px; color: hsl(0 0% 50%); margin-top: 2px; }
 
-        .attempts-list::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 10px;
-        }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field label { font-size: 12.5px; color: hsl(0 0% 74%); }
+  .field .hint { font-size: 11.5px; color: hsl(0 0% 45%); }
 
-        .attempts-list::-webkit-scrollbar-thumb:hover {
-            background: #999;
-        }
+  .input {
+    height: 34px;
+    width: 100%;
+    padding: 0 11px;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 3px);
+    background: hsl(0 0% 6.5%);
+    color: hsl(0 0% 95%);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input:hover { border-color: hsl(0 0% 22%); }
+  .input:focus-visible { outline: none; border-color: hsl(0 0% 38%); box-shadow: 0 0 0 3px hsl(0 0% 100% / 0.05); }
 
-        .attempt-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-bottom: 1px solid #e8e8e8;
-            font-size: 0.9em;
-        }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 
-        .attempt-item:last-child {
-            border-bottom: none;
-        }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .row + .row { margin-top: 14px; padding-top: 14px; border-top: 1px solid hsl(0 0% 10%); }
 
-        .attempt-index {
-            color: #999;
-            font-weight: 500;
-            min-width: 40px;
-        }
+  .switch {
+    position: relative;
+    width: 34px;
+    height: 19px;
+    border-radius: 999px;
+    border: 1px solid hsl(0 0% 22%);
+    background: hsl(0 0% 15%);
+    padding: 0;
+    transition: background 0.16s ease, border-color 0.16s ease;
+  }
+  .switch .thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: hsl(0 0% 62%);
+    transition: transform 0.16s ease, background 0.16s ease;
+  }
+  .switch[aria-checked="true"] { background: hsl(0 0% 93%); border-color: hsl(0 0% 93%); }
+  .switch[aria-checked="true"] .thumb { transform: translateX(15px); background: hsl(0 0% 9%); }
 
-        .attempt-time {
-            color: #667eea;
-            font-weight: 600;
-            font-family: 'Courier New', monospace;
-        }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: hsl(0 0% 17%);
+    accent-color: hsl(0 0% 92%);
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: hsl(0 0% 96%);
+    border: none;
+    box-shadow: 0 0 0 1px hsl(0 0% 0% / 0.5);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border: none;
+    border-radius: 50%;
+    background: hsl(0 0% 96%);
+  }
 
-        .attribution {
-            color: #999;
-            margin-top: 12px;
-            font-size: 0.8em;
-        }
+  /* ---------- sound library ---------- */
+  .sound-list { display: flex; flex-direction: column; }
+  .sound-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-bottom: 1px solid hsl(0 0% 10%);
+    background: transparent;
+    text-align: left;
+    transition: background 0.15s ease;
+  }
+  .sound-row:last-child { border-bottom: none; }
+  .sound-row:hover { background: hsl(0 0% 7.5%); }
+  .sound-row .sound-icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(0 0% 8%);
+    color: hsl(0 0% 78%);
+    flex: none;
+  }
+  .sound-row .sound-name { font-size: 13px; color: hsl(0 0% 93%); }
+  .sound-row .sound-desc { font-size: 11.5px; color: hsl(0 0% 48%); }
+  .sound-row .sound-meta { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .sound-row.selected { background: hsl(0 0% 8.5%); }
+  .sound-row.selected .sound-icon { border-color: hsl(0 0% 30%); color: hsl(0 0% 100%); }
+  .check-dot {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid hsl(0 0% 26%);
+    color: transparent;
+  }
+  .sound-row.selected .check-dot { background: hsl(0 0% 97%); border-color: hsl(0 0% 97%); color: hsl(0 0% 8%); }
+  .check-dot .icon { width: 11px; height: 11px; stroke-width: 2.6; }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 24px;
-            }
+  /* ---------- tables ---------- */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th {
+    text-align: left;
+    font-weight: 500;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: hsl(0 0% 48%);
+    padding: 10px 20px;
+    border-bottom: 1px solid hsl(var(--border));
+    white-space: nowrap;
+  }
+  tbody td { padding: 11px 20px; border-bottom: 1px solid hsl(0 0% 9%); color: hsl(0 0% 82%); font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: hsl(0 0% 7%); }
+  td.mono-strong { color: hsl(0 0% 97%); font-weight: 500; }
+  td.muted { color: hsl(0 0% 48%); }
+  .empty-row td { padding: 34px 20px; text-align: center; color: hsl(0 0% 45%); border-bottom: none; }
 
-            h1 {
-                font-size: 1.5em;
-            }
+  /* ---------- analytics ---------- */
+  .bars { display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: grid; grid-template-columns: 86px 1fr 40px; align-items: center; gap: 12px; font-size: 12px; }
+  .bar-row .bar-label { color: hsl(0 0% 60%); font-variant-numeric: tabular-nums; }
+  .bar-track { height: 7px; border-radius: 999px; background: hsl(0 0% 10%); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, hsl(0 0% 42%), hsl(0 0% 84%)); transition: width 0.35s ease; }
+  .bar-row .bar-count { text-align: right; color: hsl(0 0% 88%); font-variant-numeric: tabular-nums; }
 
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+  .split-card { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .split-item { padding: 16px 20px; border-right: 1px solid hsl(0 0% 10%); }
+  .split-item:last-child { border-right: none; }
+  .split-value { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .split-label { font-size: 11.5px; color: hsl(0 0% 50%); margin-top: 2px; }
 
-            .reaction-display {
-                font-size: 2em;
-            }
+  /* ---------- reports ---------- */
+  .report-preview {
+    max-height: 260px;
+    overflow: auto;
+    padding: 14px 16px;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 3px);
+    background: hsl(0 0% 3.6%);
+    color: hsl(0 0% 62%);
+    font-size: 11.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
 
-            .test-area {
-                min-height: 150px;
-                padding: 30px 20px;
-            }
-        }
+  /* ---------- dialog ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: hsl(0 0% 0% / 0.7);
+    backdrop-filter: blur(3px);
+    z-index: 80;
+  }
+  .overlay[hidden] { display: none; }
+  .dialog {
+    width: 100%;
+    max-width: 440px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--popover));
+    box-shadow: 0 30px 80px -20px hsl(0 0% 0% / 0.9);
+    animation: dialogIn 0.16s ease;
+  }
+  @keyframes dialogIn { from { opacity: 0; transform: translateY(6px) scale(0.99); } to { opacity: 1; transform: none; } }
+  .dialog-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 18px 0; }
+  .dialog-head h2 { font-size: 14.5px; font-weight: 500; }
+  .dialog-head p { font-size: 12px; color: hsl(0 0% 52%); margin-top: 3px; }
+  .dialog-head .ghost-icon { margin-left: auto; }
+  .dialog-body { padding: 14px 18px 4px; font-size: 12.5px; color: hsl(0 0% 68%); }
+  .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 18px 18px; }
+  .shortcut-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid hsl(0 0% 10%); }
+  .shortcut-row:last-child { border-bottom: none; }
+  .shortcut-row span { font-size: 12.5px; color: hsl(0 0% 66%); }
 
-        svg {
-            width: 20px;
-            height: 20px;
-        }
-    </style>
+  /* ---------- responsive ---------- */
+  @media (max-width: 1080px) {
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translateX(-100%);
+      transition: transform 0.22s ease;
+      box-shadow: 30px 0 60px -30px hsl(0 0% 0% / 0.9);
+    }
+    body.sidebar-open .sidebar { transform: none; }
+    body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+  }
+
+  @media (max-width: 860px) {
+    .content { padding: 16px; }
+    .metrics { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .metric-value { font-size: 26px; }
+    .chart-body { height: 250px; }
+    .surface { min-height: 300px; }
+    .surface-reading { font-size: 42px; }
+    .surface.state-go .surface-title { font-size: 36px; }
+    .split-card { grid-template-columns: 1fr; }
+    .split-item { border-right: none; border-bottom: 1px solid hsl(0 0% 10%); }
+    .split-item:last-child { border-bottom: none; }
+    .kbd-hint { display: none; }
+    .bar-row { grid-template-columns: 74px 1fr 32px; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 6v6l4 2"></path></svg>
-            <h1>Reaction Tester</h1>
-        </div>
-        <p class="subtitle">Test your reaction time and track your progress</p>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-panel-left" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+  <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+  <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+  <symbol id="i-arrow-down-right" viewBox="0 0 24 24"><path d="m7 7 10 10"/><path d="M17 7v10H7"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+</svg>
 
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('test')">Test</button>
-            <button class="tab" onclick="switchTab('settings')">Settings</button>
-            <button class="tab" onclick="switchTab('stats')">Statistics</button>
-        </div>
-
-        <div id="test" class="tab-content active">
-            <div class="card">
-                <div class="card-title">Click to Start Test</div>
-                <p style="color: #666; margin-bottom: 20px; font-size: 0.9em;">
-                    A sound will play after a random delay. Click the green box as fast as you can.
-                </p>
-                <button class="button large" id="testBtn" onclick="startTest()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    Start Test
-                </button>
-            </div>
-
-            <div class="test-area hidden" id="testArea" onclick="recordReaction()">
-                <div class="status-text" id="status">Waiting...</div>
-                <div class="reaction-display" id="reactionDisplay">—</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Last Time</div>
-                    <div class="stat-value" id="lastTime">—</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Average</div>
-                    <div class="stat-value" id="averageTime">—</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Best Time</div>
-                    <div class="stat-value" id="bestTime">—</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="settings" class="tab-content">
-            <div class="card">
-                <div class="card-title">Sound Selection</div>
-                <div class="form-group">
-                    <label for="soundSelect">Choose Sound:</label>
-                    <select id="soundSelect">
-                        <option value="beep">Beep</option>
-                        <option value="bell">Bell</option>
-                        <option value="thrump">Thrump</option>
-                        <option value="mouse">Mouse Click</option>
-                    </select>
-                </div>
-                <button class="button" onclick="previewSound()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
-                    Preview Sound
-                </button>
-                <div class="attribution">High-quality synthesized sounds</div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Test Parameters</div>
-                <div class="form-group">
-                    <label for="minDelay">Minimum Delay (ms):</label>
-                    <input type="number" id="minDelay" value="1000" min="500" step="100">
-                </div>
-                <div class="form-group">
-                    <label for="maxDelay">Maximum Delay (ms):</label>
-                    <input type="number" id="maxDelay" value="5000" min="1000" step="100">
-                </div>
-                <div class="form-group">
-                    <label for="volume">Volume:</label>
-                    <input type="range" id="volume" min="0" max="100" value="70" style="padding: 0; height: 6px;">
-                </div>
-            </div>
-
-            <div class="card">
-                <button class="button secondary large" onclick="resetStats()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>
-                    Clear All Statistics
-                </button>
-            </div>
-        </div>
-
-        <div id="stats" class="tab-content">
-            <div class="card">
-                <div class="card-title">Summary</div>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-label">Total Attempts</div>
-                        <div class="stat-value" id="totalAttempts">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Average</div>
-                        <div class="stat-value" id="statAverage">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Best Time</div>
-                        <div class="stat-value" id="statBest">—</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Attempt History</div>
-                <div class="attempts-list" id="attemptsList">
-                    <div style="color: #999; text-align: center; padding: 20px;">No attempts yet</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <button class="button large" onclick="downloadStats()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Download Statistics
-                </button>
-            </div>
-        </div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg class="icon brand-mark"><use href="#i-target"/></svg>
+      <span>Reflex Labs</span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
-    <script>
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let testState = {
-            attempts: [],
-            isRunning: false,
-            soundStartTime: null,
-            testTimeoutId: null,
-            hideTimeoutId: null,
-            loadedBuffers: {}
-        };
+    <div class="quick-row">
+      <button class="quick-btn" id="quickTest">
+        <svg class="icon"><use href="#i-plus"/></svg>
+        <span>Quick Test</span>
+      </button>
+      <button class="square-btn" id="muteBtn" aria-label="Mute sound" title="Mute sound">
+        <svg class="icon" id="muteIcon"><use href="#i-volume-2"/></svg>
+      </button>
+    </div>
 
-        const soundDefinitions = {
-            beep: {
-                name: 'Beep',
-                type: 'synth',
-                frequency: 1000,
-                duration: 0.3,
-                attack: 0.01,
-                decay: 0.2,
-                sustain: 0,
-                release: 0.05
-            },
-            bell: {
-                name: 'Bell',
-                type: 'url',
-                url: 'https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg'
-            },
-            thrump: {
-                name: 'Thrump',
-                type: 'synth',
-                frequency: 150,
-                duration: 0.6,
-                attack: 0.05,
-                decay: 0.5,
-                sustain: 0.1,
-                release: 0.3
-            },
-            mouse: {
-                name: 'Mouse Click',
-                type: 'synth',
-                frequency: 2500,
-                duration: 0.15,
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0,
-                release: 0.03
-            }
-        };
+    <nav class="nav" aria-label="Main">
+      <button class="nav-item" data-view="dashboard"><svg class="icon"><use href="#i-dashboard"/></svg>Dashboard</button>
+      <button class="nav-item" data-view="test"><svg class="icon"><use href="#i-timer"/></svg>Reaction Test</button>
+      <button class="nav-item" data-view="analytics"><svg class="icon"><use href="#i-chart"/></svg>Analytics</button>
+      <button class="nav-item" data-view="settings"><svg class="icon"><use href="#i-sliders"/></svg>Settings</button>
 
-        async function preloadSounds() {
-            for (const [key, sound] of Object.entries(soundDefinitions)) {
-                if (sound.type === 'url') {
-                    try {
-                        const response = await fetch(sound.url);
-                        const arrayBuffer = await response.arrayBuffer();
-                        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                        testState.loadedBuffers[key] = audioBuffer;
-                    } catch (e) {
-                        console.error(`Failed to load ${key}:`, e);
-                    }
-                }
-            }
-        }
+      <div class="nav-label">Documents</div>
+      <button class="nav-item" data-view="data"><svg class="icon"><use href="#i-folder"/></svg>Data Library</button>
+      <button class="nav-item" data-view="reports"><svg class="icon"><use href="#i-file"/></svg>Reports</button>
+      <button class="nav-item" data-view="sounds"><svg class="icon"><use href="#i-music"/></svg>Sound Library</button>
+      <button class="nav-item" id="moreBtn"><svg class="icon"><use href="#i-more"/></svg>More</button>
+    </nav>
 
-        window.addEventListener('load', preloadSounds);
-        document.addEventListener('DOMContentLoaded', preloadSounds);
+    <div class="sidebar-footer">
+      <div class="footer-meta"><span id="footerCount">0 attempts</span><span class="dot">/</span><span>v2.0</span></div>
+    </div>
+  </aside>
 
-        function playSound(soundType) {
-            if (!soundDefinitions[soundType]) return;
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-            const sound = soundDefinitions[soundType];
-            const volume = parseFloat(document.getElementById('volume').value) / 100;
+  <main class="main">
+    <header class="topbar">
+      <button class="ghost-icon" id="menuBtn" aria-label="Toggle sidebar">
+        <svg class="icon"><use href="#i-panel-left"/></svg>
+      </button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="topbar-spacer"></div>
+      <div class="kbd-hint"><kbd>Space</kbd> start / react</div>
+    </header>
 
-            if (sound.type === 'url') {
-                if (!testState.loadedBuffers[soundType]) return;
-                const buffer = testState.loadedBuffers[soundType];
-                const source = audioContext.createBufferSource();
-                const gainNode = audioContext.createGain();
-                source.buffer = buffer;
-                gainNode.gain.value = volume;
-                source.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                source.start(0);
-            } else {
-                const now = audioContext.currentTime;
-                const duration = sound.duration;
-                const endTime = now + duration;
+    <div class="content">
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view active" data-view="dashboard">
+        <div class="metrics">
+          <div class="card metric">
+            <div class="metric-top">
+              <div class="metric-label">Best Reaction</div>
+              <span class="badge" id="mBestBadge"><svg class="icon"><use href="#i-minus"/></svg><span>n/a</span></span>
+            </div>
+            <div class="metric-value"><span id="mBestValue">—</span></div>
+            <div class="metric-note"><span id="mBestNote">Run your first test</span><svg class="icon"><use href="#i-arrow-up-right"/></svg></div>
+            <div class="metric-sub" id="mBestSub">No attempts recorded yet</div>
+          </div>
 
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                const filter = audioContext.createBiquadFilter();
+          <div class="card metric">
+            <div class="metric-top">
+              <div class="metric-label">Average Reaction</div>
+              <span class="badge" id="mAvgBadge"><svg class="icon"><use href="#i-minus"/></svg><span>n/a</span></span>
+            </div>
+            <div class="metric-value"><span id="mAvgValue">—</span></div>
+            <div class="metric-note"><span id="mAvgNote">Waiting for data</span><svg class="icon"><use href="#i-arrow-down-right"/></svg></div>
+            <div class="metric-sub" id="mAvgSub">Based on your last 5 attempts</div>
+          </div>
 
-                osc.frequency.value = sound.frequency;
-                osc.type = 'sine';
-                
-                filter.type = 'lowpass';
-                filter.frequency.value = 5000;
+          <div class="card metric">
+            <div class="metric-top">
+              <div class="metric-label">Attempts Logged</div>
+              <span class="badge" id="mCountBadge"><svg class="icon"><use href="#i-minus"/></svg><span>0 today</span></span>
+            </div>
+            <div class="metric-value"><span id="mCountValue">0</span></div>
+            <div class="metric-note"><span id="mCountNote">Sound cue ready</span><svg class="icon"><use href="#i-activity"/></svg></div>
+            <div class="metric-sub" id="mCountSub">Cue: Beep</div>
+          </div>
+        </div>
 
-                const attackEnd = now + sound.attack;
-                const decayEnd = attackEnd + sound.decay;
-                const releaseStart = endTime - sound.release;
+        <div class="card">
+          <div class="chart-link">
+            <div>
+              <h2 class="card-title">Reaction Trend</h2>
+              <p class="card-desc" id="chartDesc">Reaction time per attempt</p>
+            </div>
+            <div class="select-wrap">
+              <select id="rangeSelect" aria-label="Chart range">
+                <option value="10">Last 10</option>
+                <option value="25">Last 25</option>
+                <option value="50">Last 50</option>
+                <option value="all">All attempts</option>
+              </select>
+              <svg class="icon select-caret"><use href="#i-chevron-down"/></svg>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="chart"></canvas>
+            <div class="chart-empty" id="chartEmpty">No attempts yet — run a test to plot your reaction times.</div>
+          </div>
+        </div>
+      </section>
 
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(volume, attackEnd);
-                gain.gain.linearRampToValueAtTime(volume * sound.sustain, decayEnd);
-                gain.gain.setValueAtTime(volume * sound.sustain, releaseStart);
-                gain.gain.linearRampToValueAtTime(0, endTime);
+      <!-- ============ REACTION TEST ============ -->
+      <section class="view" data-view="test">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Reaction Test</h2>
+              <p class="card-desc">A sound cue plays after a random delay. Click the panel the moment you hear it.</p>
+            </div>
+            <div class="head-actions">
+              <span class="badge subtle" id="cueBadge">Beep</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="surface state-idle" id="surface" role="button" tabindex="0" aria-live="polite" aria-label="Reaction test panel">
+              <div class="surface-inner">
+                <div class="surface-icon" id="surfaceIcon"><svg class="icon"><use href="#i-play"/></svg></div>
+                <div class="surface-reading" id="surfaceReading" hidden><span id="surfaceReadingValue">0</span><span class="reading-unit">ms</span></div>
+                <div class="surface-title" id="surfaceTitle">Ready when you are</div>
+                <div class="surface-sub" id="surfaceSub">Click this panel or press Space to start.</div>
+                <div class="surface-meta" id="surfaceMeta">Random delay 1.0–5.0 s / Beep</div>
+              </div>
+            </div>
+            <div class="test-hint">
+              <span><kbd>Space</kbd> start or react</span>
+              <span><kbd>Esc</kbd> cancel</span>
+              <span id="testHintSound">Cue plays at your chosen volume</span>
+            </div>
+          </div>
+        </div>
 
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(audioContext.destination);
+        <div class="metrics">
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Last Attempt</div><span class="badge subtle" id="lastBadge">—</span></div>
+            <div class="metric-value"><span id="tLast">—</span></div>
+            <div class="metric-sub" id="tLastSub">No attempt logged yet</div>
+          </div>
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Average</div><span class="badge subtle" id="tAvgBadge">—</span></div>
+            <div class="metric-value"><span id="tAvg">—</span></div>
+            <div class="metric-sub" id="tAvgSub">Across all attempts</div>
+          </div>
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Best</div><span class="badge subtle" id="tBestBadge">—</span></div>
+            <div class="metric-value"><span id="tBest">—</span></div>
+            <div class="metric-sub" id="tBestSub">Personal record</div>
+          </div>
+        </div>
+      </section>
 
-                osc.start(now);
-                osc.stop(endTime);
-            }
-        }
+      <!-- ============ ANALYTICS ============ -->
+      <section class="view" data-view="analytics">
+        <div class="metrics">
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Median</div><span class="badge subtle">50th</span></div>
+            <div class="metric-value"><span id="aMedian">—</span></div>
+            <div class="metric-sub">Middle value of all attempts</div>
+          </div>
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Consistency</div><span class="badge subtle">σ</span></div>
+            <div class="metric-value"><span id="aConsistency">—</span></div>
+            <div class="metric-sub">Standard deviation, lower is steadier</div>
+          </div>
+          <div class="card metric">
+            <div class="metric-top"><div class="metric-label">Slowest</div><span class="badge subtle">max</span></div>
+            <div class="metric-value"><span id="aSlowest">—</span></div>
+            <div class="metric-sub">Highest reaction time recorded</div>
+          </div>
+        </div>
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            loadFromStorage();
-        }
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Response Distribution</h2>
+              <p class="card-desc">How your reaction times are spread out</p>
+            </div>
+            <span class="badge subtle" id="distCount">0 attempts</span>
+          </div>
+          <div class="card-body">
+            <div class="bars" id="distBars"></div>
+          </div>
+        </div>
 
-        function previewSound() {
-            if (audioContext.state === 'suspended') audioContext.resume();
-            const sound = document.getElementById('soundSelect').value;
-            playSound(sound);
-        }
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 16px;">
+            <div>
+              <h2 class="card-title">Performance Breakdown</h2>
+              <p class="card-desc">Share of attempts by rating</p>
+            </div>
+          </div>
+          <div class="split-card" id="ratingSplit"></div>
+        </div>
+      </section>
 
-        function startTest() {
-            if (testState.isRunning) return;
-            if (audioContext.state === 'suspended') audioContext.resume();
+      <!-- ============ SETTINGS ============ -->
+      <section class="view" data-view="settings">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head" style="padding-bottom: 16px;">
+              <div>
+                <h2 class="card-title">Test Parameters</h2>
+                <p class="card-desc">Control the window before the sound cue</p>
+              </div>
+            </div>
+            <div class="card-body" style="padding-top: 0;">
+              <div class="field" style="margin-bottom: 14px;">
+                <label for="minDelay">Minimum delay (ms)</label>
+                <input class="input" type="number" id="minDelay" min="300" max="10000" step="100" />
+                <span class="hint">Shortest wait before the cue.</span>
+              </div>
+              <div class="field">
+                <label for="maxDelay">Maximum delay (ms)</label>
+                <input class="input" type="number" id="maxDelay" min="500" max="20000" step="100" />
+                <span class="hint" id="delayHint">Current window: 1.0 – 5.0 s</span>
+              </div>
+            </div>
+          </div>
 
-            clearTimeout(testState.testTimeoutId);
-            clearTimeout(testState.hideTimeoutId);
-
-            testState.isRunning = true;
-            const testBtn = document.getElementById('testBtn');
-            testBtn.disabled = true;
-
-            const minDelay = parseInt(document.getElementById('minDelay').value);
-            const maxDelay = parseInt(document.getElementById('maxDelay').value);
-            const delay = Math.random() * (maxDelay - minDelay) + minDelay;
-
-            const testArea = document.getElementById('testArea');
-            testArea.classList.remove('hidden');
-            testArea.classList.remove('ready');
-            document.getElementById('status').textContent = `Waiting... ${(delay / 1000).toFixed(1)}s`;
-            document.getElementById('reactionDisplay').textContent = '—';
-
-            testState.testTimeoutId = setTimeout(() => {
-                if (!testState.isRunning) return;
-                const sound = document.getElementById('soundSelect').value;
-                playSound(sound);
-                testState.soundStartTime = performance.now();
-                document.getElementById('status').textContent = 'GO!';
-                document.getElementById('reactionDisplay').textContent = '—';
-                testArea.classList.add('ready');
-            }, delay);
-
-            testBtn.disabled = false;
-        }
-
-        function recordReaction() {
-            if (!testState.isRunning || !testState.soundStartTime) return;
-
-            const reactionTime = Math.round(performance.now() - testState.soundStartTime);
-            testState.attempts.push(reactionTime);
-            testState.isRunning = false;
-            saveToStorage();
-
-            const testArea = document.getElementById('testArea');
-            testArea.classList.remove('ready');
-            document.getElementById('reactionDisplay').textContent = `${reactionTime}ms`;
-            document.getElementById('lastTime').textContent = `${reactionTime}ms`;
-
-            updateStats();
-
-            testState.hideTimeoutId = setTimeout(() => {
-                testArea.classList.add('hidden');
-            }, 2500);
-        }
-
-        function updateStats() {
-            const attempts = testState.attempts;
-            if (attempts.length === 0) return;
-
-            const avg = Math.round(attempts.reduce((a, b) => a + b) / attempts.length);
-            const best = Math.min(...attempts);
-
-            document.getElementById('averageTime').textContent = `${avg}ms`;
-            document.getElementById('bestTime').textContent = `${best}ms`;
-            document.getElementById('totalAttempts').textContent = attempts.length;
-            document.getElementById('statAverage').textContent = `${avg}ms`;
-            document.getElementById('statBest').textContent = `${best}ms`;
-
-            const list = document.getElementById('attemptsList');
-            list.innerHTML = attempts.slice().reverse().map((time, i) => `
-                <div class="attempt-item">
-                    <span class="attempt-index">#${attempts.length - i}</span>
-                    <span class="attempt-time">${time}ms</span>
+          <div class="card">
+            <div class="card-head" style="padding-bottom: 16px;">
+              <div>
+                <h2 class="card-title">Audio</h2>
+                <p class="card-desc">Cue sound and playback level</p>
+              </div>
+            </div>
+            <div class="card-body" style="padding-top: 0;">
+              <div class="row" style="margin-top: 0;">
+                <div>
+                  <div class="section-title">Cue sound</div>
+                  <div class="section-desc" id="audioSoundName">Beep</div>
                 </div>
-            `).join('');
+                <button class="btn ghost" data-goto="sounds">Browse</button>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="section-title">Mute audio</div>
+                  <div class="section-desc">Visual cue still flashes</div>
+                </div>
+                <button class="switch" id="muteSwitch" role="switch" aria-checked="false" aria-label="Mute audio"><span class="thumb"></span></button>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="section-title">Volume</div>
+                  <div class="section-desc">Applies to the cue and previews</div>
+                </div>
+                <span class="badge subtle" id="volumeLabel">70%</span>
+              </div>
+              <div style="margin-top: 10px;">
+                <input type="range" id="volume" min="0" max="100" step="1" value="70" aria-label="Volume" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 16px;">
+            <div>
+              <h2 class="card-title">Data</h2>
+              <p class="card-desc">Everything is stored locally in this browser</p>
+            </div>
+            <span class="badge subtle" id="dataCount">0 attempts</span>
+          </div>
+          <div class="card-body" style="padding-top: 0;">
+            <div class="row" style="margin-top: 0;">
+              <div>
+                <div class="section-title">Clear all statistics</div>
+                <div class="section-desc">Removes every stored attempt. This cannot be undone.</div>
+              </div>
+              <button class="btn destructive" id="clearBtn"><svg class="icon sm"><use href="#i-trash"/></svg>Clear</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DATA LIBRARY ============ -->
+      <section class="view" data-view="data">
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 14px;">
+            <div>
+              <h2 class="card-title">Data Library</h2>
+              <p class="card-desc">Every recorded attempt, newest first</p>
+            </div>
+            <div class="head-actions">
+              <button class="btn ghost" id="csvBtn"><svg class="icon sm"><use href="#i-download"/></svg>CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th style="width: 64px;">#</th><th>Reaction</th><th>Rating</th><th>vs. average</th><th style="text-align: right;">Recorded</th></tr>
+              </thead>
+              <tbody id="dataBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REPORTS ============ -->
+      <section class="view" data-view="reports">
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 14px;">
+            <div>
+              <h2 class="card-title">Reports</h2>
+              <p class="card-desc">Export a summary of the attempts stored in this browser</p>
+            </div>
+            <div class="head-actions">
+              <button class="btn ghost" id="txtBtn"><svg class="icon sm"><use href="#i-download"/></svg>Report</button>
+              <button class="btn secondary" id="csvBtn2"><svg class="icon sm"><use href="#i-download"/></svg>CSV</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="report-preview" id="reportPreview">No attempts recorded yet.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SOUND LIBRARY ============ -->
+      <section class="view" data-view="sounds">
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 14px;">
+            <div>
+              <h2 class="card-title">Sound Library</h2>
+              <p class="card-desc">Real recorded cues. Click a row to select it, or preview it first.</p>
+            </div>
+            <button class="btn ghost" id="previewBtn"><svg class="icon sm"><use href="#i-play"/></svg>Preview</button>
+          </div>
+          <div class="sound-list" id="soundList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="padding-bottom: 16px;">
+            <div>
+              <h2 class="card-title">Playback</h2>
+              <p class="card-desc">Volume and mute for the test cue</p>
+            </div>
+            <span class="badge subtle" id="volumeLabel2">70%</span>
+          </div>
+          <div class="card-body" style="padding-top: 0;">
+            <input type="range" id="volume2" min="0" max="100" step="1" value="70" aria-label="Volume" />
+            <div class="row" style="margin-top: 16px;">
+              <div>
+                <div class="section-title">Mute audio</div>
+                <div class="section-desc">The panel still flashes on the cue</div>
+              </div>
+              <button class="switch" id="muteSwitch2" role="switch" aria-checked="false" aria-label="Mute audio"><span class="thumb"></span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ============ DIALOG ============ -->
+<div class="overlay" id="overlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog-head">
+      <div>
+        <h2 id="dialogTitle">Title</h2>
+        <p id="dialogDesc">Description</p>
+      </div>
+      <button class="ghost-icon" id="dialogClose" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="dialog-body" id="dialogBody"></div>
+    <div class="dialog-foot" id="dialogFoot"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+  const round = (n) => Math.round(n);
+
+  /* ------------------------------------------------------------------ *
+   * Sounds — real recorded samples (Google Actions sound library, CORS)
+   * ------------------------------------------------------------------ */
+  const SOUNDS = {
+    beep:  { name: "Beep",  desc: "Short digital beep",        url: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg" },
+    bell:  { name: "Bell",  desc: "Cowbell strike",             url: "https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg" },
+    bugle: { name: "Bugle", desc: "Brass bugle call",           url: "https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg" },
+    click: { name: "Click", desc: "Wooden plank click",         url: "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" },
+    pop:   { name: "Pop",   desc: "Bubble pop",                 url: "https://actions.google.com/sounds/v1/cartoon/pop.ogg" },
+    boing: { name: "Boing", desc: "Springy cartoon boing",      url: "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" }
+  };
+
+  const AUDIO_PREFS = {
+    volume: 70,
+    muted: false
+  };
+
+  let audioCtx = null;
+  const buffers = {};
+  const failed = {};
+  let loadingPromise = null;
+
+  function ctx() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    return audioCtx;
+  }
+
+  function preloadSounds() {
+    if (loadingPromise) return loadingPromise;
+    const c = ctx();
+    if (!c) return Promise.resolve();
+    loadingPromise = Promise.all(Object.entries(SOUNDS).map(async ([key, s]) => {
+      try {
+        const res = await fetch(s.url, { mode: "cors", cache: "force-cache" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.arrayBuffer();
+        buffers[key] = await c.decodeAudioData(data);
+      } catch (err) {
+        failed[key] = true;
+      }
+    }));
+    return loadingPromise;
+  }
+
+  function beepFallback(volume) {
+    const c = ctx();
+    if (!c) return;
+    if (c.state === "suspended") c.resume();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    const now = c.currentTime;
+    osc.type = "triangle";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(volume * 0.9, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(c.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+  }
+
+  function playCue(key, force = false) {
+    const sound = SOUNDS[key] ? key : "beep";
+    const volume = clamp(AUDIO_PREFS.volume / 100, 0, 1);
+    const level = force ? Math.max(volume, 0.35) : volume;
+
+    if (!force && AUDIO_PREFS.muted) return;
+
+    const c = ctx();
+    if (c && buffers[sound]) {
+      if (c.state === "suspended") c.resume();
+      const src = c.createBufferSource();
+      const gain = c.createGain();
+      src.buffer = buffers[sound];
+      gain.gain.value = level;
+      src.connect(gain);
+      gain.connect(c.destination);
+      src.start();
+      return;
+    }
+
+    // Fallback: stream the same recorded file through an <audio> element.
+    try {
+      const el = new Audio(SOUNDS[sound].url);
+      el.volume = level;
+      const p = el.play();
+      if (p && typeof p.catch === "function") p.catch(() => beepFallback(level));
+      return;
+    } catch (err) {
+      beepFallback(level);
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * State
+   * ------------------------------------------------------------------ */
+  const STORE_KEY = "reflexLabs.v2";
+  const DEFAULT_SETTINGS = { sound: "beep", min: 1000, max: 5000, range: "25" };
+
+  let settings = { ...DEFAULT_SETTINGS };
+  let attempts = []; // { ms, at }
+  let phase = "idle"; // idle | waiting | go | early | result
+  let armTimer = null;
+  let resetTimer = null;
+  let cueAt = 0;
+  let lastAttempt = null;
+  let currentView = "dashboard";
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.attempts)) {
+          attempts = parsed.attempts
+            .filter((a) => a && Number.isFinite(a.ms))
+            .map((a) => ({ ms: round(a.ms), at: a.at || Date.now() }));
         }
-
-        function resetStats() {
-            if (confirm('Clear all statistics? This cannot be undone.')) {
-                testState.attempts = [];
-                saveToStorage();
-                document.getElementById('lastTime').textContent = '—';
-                document.getElementById('averageTime').textContent = '—';
-                document.getElementById('bestTime').textContent = '—';
-                document.getElementById('totalAttempts').textContent = '0';
-                document.getElementById('statAverage').textContent = '—';
-                document.getElementById('statBest').textContent = '—';
-                document.getElementById('attemptsList').innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">No attempts yet</div>';
-            }
+        if (parsed.settings) settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+      } else {
+        // migrate the v1 list of plain numbers, if present
+        const legacy = localStorage.getItem("reactionTimeAttempts");
+        if (legacy) {
+          const arr = JSON.parse(legacy);
+          if (Array.isArray(arr)) {
+            attempts = arr.filter(Number.isFinite).map((ms) => ({ ms: round(ms), at: Date.now() }));
+          }
         }
+      }
+      const v1volume = localStorage.getItem("reactionTimeVolume");
+      if (v1volume !== null && !raw) AUDIO_PREFS.volume = clamp(Number(v1volume), 0, 100);
+    } catch (err) { /* ignore corrupt storage */ }
+    settings.min = clamp(Number(settings.min) || 1000, 300, 20000);
+    settings.max = clamp(Number(settings.max) || 5000, 400, 30000);
+    if (settings.max < settings.min) settings.max = settings.min + 1000;
+    if (!SOUNDS[settings.sound]) settings.sound = "beep";
+    if (!["10", "25", "50", "all"].includes(String(settings.range))) settings.range = "25";
+    settings.range = String(settings.range);
+  }
 
-        function saveToStorage() {
-            localStorage.setItem('reactionTimeAttempts', JSON.stringify(testState.attempts));
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ attempts, settings }));
+    } catch (err) { /* storage full or blocked */ }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Stats helpers
+   * ------------------------------------------------------------------ */
+  function statsFor(list) {
+    const ms = list.map((a) => a.ms);
+    const n = ms.length;
+    if (!n) return { n: 0, avg: null, best: null, worst: null, median: null, sd: null, last: null };
+    const sum = ms.reduce((a, b) => a + b, 0);
+    const avg = sum / n;
+    const sorted = [...ms].sort((a, b) => a - b);
+    const median = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+    const variance = ms.reduce((acc, v) => acc + (v - avg) ** 2, 0) / n;
+    return {
+      n,
+      avg: round(avg),
+      best: sorted[0],
+      worst: sorted[n - 1],
+      median: round(median),
+      sd: round(Math.sqrt(variance)),
+      last: ms[n - 1]
+    };
+  }
+
+  function ratingFor(ms) {
+    if (!Number.isFinite(ms)) return { label: "—", tone: "avg" };
+    if (ms < 180) return { label: "Elite", tone: "fast" };
+    if (ms < 230) return { label: "Fast", tone: "fast" };
+    if (ms < 300) return { label: "Average", tone: "avg" };
+    if (ms < 400) return { label: "Slow", tone: "slow" };
+    return { label: "Very slow", tone: "slow" };
+  }
+
+  const fmtMs = (ms) => (Number.isFinite(ms) ? round(ms).toLocaleString("en-US") : "—");
+  const clock = (t) => new Date(t).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  const dayLabel = (t) => new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+  /* ------------------------------------------------------------------ *
+   * Dashboard
+   * ------------------------------------------------------------------ */
+  function setBadge(el, text, direction = "none") {
+    if (!el) return;
+    const span = el.querySelector("span");
+    const use = el.querySelector("use");
+    if (span) span.textContent = text;
+    if (use) {
+      const icon = direction === "down" ? "#i-arrow-down-right" : direction === "up" ? "#i-arrow-up-right" : "#i-minus";
+      use.setAttribute("href", icon);
+    }
+  }
+
+  function renderDashboard() {
+    const s = statsFor(attempts);
+    const recent = attempts.slice(-5);
+    const rs = statsFor(recent);
+
+    const bestBadgeText = s.n > 1 ? `${round(((s.best - s.avg) / s.avg) * 100)}%` : "n/a";
+    setBadge($("#mBestBadge"), bestBadgeText, s.n > 1 ? "down" : "none");
+
+    if (s.n) {
+      $("#mBestValue").innerHTML = `${fmtMs(s.best)}<span class="unit">ms</span>`;
+      $("#mBestNote").textContent = s.best < 230 ? "Faster than your average" : "Best run so far";
+      $("#mBestSub").textContent = `Recorded across ${s.n} attempt${s.n === 1 ? "" : "s"}`;
+    } else {
+      $("#mBestValue").textContent = "—";
+      $("#mBestNote").textContent = "Run your first test";
+      $("#mBestSub").textContent = "No attempts recorded yet";
+    }
+
+    if (s.n) {
+      const delta = s.n > 1 ? round(((rs.avg - s.avg) / s.avg) * 100) : 0;
+      setBadge($("#mAvgBadge"), `${delta > 0 ? "+" : ""}${delta}%`, delta < 0 ? "down" : delta > 0 ? "up" : "none");
+      $("#mAvgValue").innerHTML = `${fmtMs(s.avg)}<span class="unit">ms</span>`;
+      $("#mAvgNote").textContent =
+        s.n < 2 ? "Baseline established" : delta < 0 ? "Trending faster this session" : delta > 0 ? "Trending slower this session" : "Holding steady";
+      $("#mAvgSub").textContent = s.n < 2 ? "Add another attempt for trends" : `Last 5 average: ${fmtMs(rs.avg)} ms`;
+    } else {
+      setBadge($("#mAvgBadge"), "n/a");
+      $("#mAvgValue").textContent = "—";
+      $("#mAvgNote").textContent = "Waiting for data";
+      $("#mAvgSub").textContent = "Based on your last 5 attempts";
+    }
+
+    const today = attempts.filter((a) => new Date(a.at).toDateString() === new Date().toDateString()).length;
+    setBadge($("#mCountBadge"), `${today > 0 ? "+" : ""}${today} today`, today > 0 ? "up" : "none");
+    $("#mCountValue").textContent = s.n.toLocaleString("en-US");
+    $("#mCountNote").textContent = s.n ? (s.sd !== null && s.sd < 70 ? "Strong consistency" : "Keep the streak going") : "Sound cue ready";
+    $("#mCountSub").textContent = `Cue: ${SOUNDS[settings.sound].name}`;
+
+    $("#chartDesc").textContent = attempts.length
+      ? `${Math.min(attempts.length, settings.range === "all" ? attempts.length : Number(settings.range))} most recent attempts, lower is better`
+      : "Reaction time per attempt";
+
+    renderChart();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Chart
+   * ------------------------------------------------------------------ */
+  function seriesFor() {
+    const limit = settings.range === "all" ? attempts.length : Number(settings.range);
+    return attempts.slice(-limit);
+  }
+
+  function smoothPath(g, pts) {
+    g.moveTo(pts[0].x, pts[0].y);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const t = 0.18;
+      g.bezierCurveTo(
+        p1.x + (p2.x - p0.x) * t, p1.y + (p2.y - p0.y) * t,
+        p2.x - (p3.x - p1.x) * t, p2.y - (p3.y - p1.y) * t,
+        p2.x, p2.y
+      );
+    }
+  }
+
+  function renderChart() {
+    const canvas = $("#chart");
+    if (!canvas) return;
+    const host = canvas.parentElement;
+    const empty = $("#chartEmpty");
+    const raw = seriesFor().map((a) => a.ms);
+    empty.style.display = raw.length ? "none" : "";
+
+    const w = host.clientWidth;
+    const h = host.clientHeight;
+    if (!w || !h) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = round(w * dpr);
+    canvas.height = round(h * dpr);
+    const g = canvas.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+
+    const padL = 18, padR = 18, padT = 16, padB = 24;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    // dashed grid
+    g.save();
+    g.strokeStyle = "rgba(255,255,255,0.06)";
+    g.lineWidth = 1;
+    g.setLineDash([3, 6]);
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (plotH * i) / 4;
+      g.beginPath();
+      g.moveTo(padL, y);
+      g.lineTo(w - padR, y);
+      g.stroke();
+    }
+    g.restore();
+
+    if (!raw.length) return;
+    const data = raw.length === 1 ? [raw[0], raw[0]] : raw;
+
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const span = Math.max(max - min, 30);
+    const lo = Math.max(0, min - span * 0.35);
+    const hi = max + span * 0.35;
+    const yFor = (v) => padT + plotH - ((v - lo) / (hi - lo)) * plotH;
+    const xFor = (i) => padL + (plotW * i) / (data.length - 1);
+
+    const pts = data.map((v, i) => ({ x: xFor(i), y: yFor(v) }));
+
+    // area
+    const grad = g.createLinearGradient(0, padT, 0, padT + plotH);
+    grad.addColorStop(0, "rgba(255,255,255,0.17)");
+    grad.addColorStop(0.55, "rgba(255,255,255,0.06)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    g.beginPath();
+    smoothPath(g, pts);
+    g.lineTo(pts[pts.length - 1].x, padT + plotH);
+    g.lineTo(pts[0].x, padT + plotH);
+    g.closePath();
+    g.fillStyle = grad;
+    g.fill();
+
+    // line
+    g.beginPath();
+    smoothPath(g, pts);
+    g.strokeStyle = "rgba(255,255,255,0.55)";
+    g.lineWidth = 1.4;
+    g.lineJoin = "round";
+    g.stroke();
+
+    // last point marker
+    const last = pts[pts.length - 1];
+    g.beginPath();
+    g.arc(last.x, last.y, 3, 0, Math.PI * 2);
+    g.fillStyle = "rgba(250,250,250,0.95)";
+    g.fill();
+    g.beginPath();
+    g.arc(last.x, last.y, 6, 0, Math.PI * 2);
+    g.fillStyle = "rgba(250,250,250,0.12)";
+    g.fill();
+
+    // x labels
+    if (raw.length < 2) return;
+    g.fillStyle = "rgba(255,255,255,0.32)";
+    g.font = '10px "Geist Mono", ui-monospace, monospace';
+    g.textBaseline = "top";
+    const labels = [0, Math.floor((data.length - 1) / 2), data.length - 1];
+    labels.forEach((idx, k) => {
+      if (idx < 0) return;
+      const x = xFor(idx);
+      const text = `#${idx + 1}`;
+      const width = g.measureText(text).width;
+      const alignX = k === 0 ? x : k === labels.length - 1 ? x - width : x - width / 2;
+      g.fillText(text, clamp(alignX, padL, w - padR - width), padT + plotH + 8);
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Test surface
+   * ------------------------------------------------------------------ */
+  function soundName() {
+    return SOUNDS[settings.sound].name;
+  }
+
+  function renderSurface() {
+    const surface = $("#surface");
+    const icon = $("#surfaceIcon");
+    const reading = $("#surfaceReading");
+    const value = $("#surfaceReadingValue");
+    const title = $("#surfaceTitle");
+    const sub = $("#surfaceSub");
+    const meta = $("#surfaceMeta");
+
+    surface.className = "surface state-" + phase;
+    reading.hidden = true;
+    icon.classList.remove("hidden");
+    title.innerHTML = "";
+    meta.style.visibility = "visible";
+
+    const windowText = `${(settings.min / 1000).toFixed(1)}–${(settings.max / 1000).toFixed(1)} s`;
+
+    if (phase === "idle") {
+      icon.innerHTML = '<svg class="icon"><use href="#i-play"/></svg>';
+      title.textContent = "Ready when you are";
+      sub.textContent = "Click this panel or press Space to start.";
+      meta.textContent = `Random delay ${windowText} / ${soundName()}`;
+    } else if (phase === "waiting") {
+      icon.innerHTML = '<svg class="icon"><use href="#i-timer"/></svg>';
+      title.textContent = "Listen for the sound";
+      sub.textContent = "Hold steady — clicking early is a false start.";
+      meta.textContent = "Listening";
+    } else if (phase === "go") {
+      icon.innerHTML = '<svg class="icon"><use href="#i-zap"/></svg>';
+      title.textContent = "CLICK";
+      sub.textContent = "React as fast as you can";
+      meta.textContent = "Cue fired";
+    } else if (phase === "early") {
+      icon.innerHTML = '<svg class="icon"><use href="#i-x"/></svg>';
+      title.textContent = "Too soon";
+      sub.textContent = "You clicked before the cue. That attempt was discarded.";
+      meta.textContent = "Click to try again";
+    } else {
+      icon.classList.add("hidden");
+      reading.hidden = false;
+      value.textContent = fmtMs(lastAttempt);
+      const r = ratingFor(lastAttempt);
+      title.innerHTML = `<span class="rating-pill ${r.tone}">${r.label}</span>`;
+      sub.textContent = "Click or press Space to run another attempt.";
+      const s = statsFor(attempts);
+      meta.textContent = `Average ${fmtMs(s.avg)} ms / Best ${fmtMs(s.best)} ms`;
+    }
+  }
+
+  function clearTimers() {
+    if (armTimer) { clearTimeout(armTimer); armTimer = null; }
+    if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
+  }
+
+  function startTest() {
+    clearTimers();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    preloadSounds();
+
+    phase = "waiting";
+    cueAt = 0;
+    renderSurface();
+
+    const delay = settings.min + Math.random() * Math.max(0, settings.max - settings.min);
+    armTimer = setTimeout(() => {
+      armTimer = null;
+      if (phase !== "waiting") return;
+      playCue(settings.sound);
+      cueAt = performance.now();
+      phase = "go";
+      renderSurface();
+    }, delay);
+  }
+
+  function record(ms) {
+    attempts.push({ ms: round(ms), at: Date.now() });
+    lastAttempt = round(ms);
+    phase = "result";
+    clearTimers();
+    save();
+    renderSurface();
+    renderAll();
+    // keep the result readable, then invite another try
+    resetTimer = setTimeout(() => {
+      resetTimer = null;
+      if (phase === "result") {
+        phase = "idle";
+        renderSurface();
+      }
+    }, 6000);
+  }
+
+  function handlePrimary() {
+    if (currentView !== "test") {
+      setView("test");
+      // don't let a cue that fired on another view count as a reaction
+      if (phase === "waiting" || phase === "go") return;
+    }
+    if (phase === "waiting") {
+      clearTimers();
+      phase = "early";
+      renderSurface();
+      resetTimer = setTimeout(() => {
+        resetTimer = null;
+        if (phase === "early") { phase = "idle"; renderSurface(); }
+      }, 1600);
+      return;
+    }
+    if (phase === "go" && cueAt) {
+      const ms = performance.now() - cueAt;
+      record(ms);
+      return;
+    }
+    if (phase === "result" || phase === "early" || phase === "idle") {
+      startTest();
+    }
+  }
+
+  function cancelTest() {
+    if (phase !== "waiting") return;
+    clearTimers();
+    phase = "idle";
+    renderSurface();
+  }
+
+  function renderTestStats() {
+    const s = statsFor(attempts);
+    $("#tLast").innerHTML = s.last !== null ? `${fmtMs(s.last)}<span class="unit">ms</span>` : "—";
+    $("#tAvg").innerHTML = s.avg !== null ? `${fmtMs(s.avg)}<span class="unit">ms</span>` : "—";
+    $("#tBest").innerHTML = s.best !== null ? `${fmtMs(s.best)}<span class="unit">ms</span>` : "—";
+
+    const last = lastAttempt !== null ? lastAttempt : s.last;
+    $("#lastBadge").textContent = Number.isFinite(last) ? ratingFor(last).label : "—";
+    $("#tAvgBadge").textContent = s.n > 1 ? `σ ${fmtMs(s.sd)}` : s.n ? "1 run" : "—";
+    $("#tBestBadge").textContent = s.n ? "record" : "—";
+
+    $("#tLastSub").textContent = Number.isFinite(last) && attempts.length
+      ? `Recorded at ${clock(attempts[attempts.length - 1].at)}`
+      : "No attempt logged yet";
+    $("#tAvgSub").textContent = s.n ? `Across ${s.n} attempt${s.n === 1 ? "" : "s"}` : "Across all attempts";
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Analytics
+   * ------------------------------------------------------------------ */
+  function renderAnalytics() {
+    const s = statsFor(attempts);
+    $("#aMedian").innerHTML = s.median !== null ? `${fmtMs(s.median)}<span class="unit">ms</span>` : "—";
+    $("#aConsistency").innerHTML = s.sd !== null ? `±${fmtMs(s.sd)}<span class="unit">ms</span>` : "—";
+    $("#aSlowest").innerHTML = s.worst !== null ? `${fmtMs(s.worst)}<span class="unit">ms</span>` : "—";
+    $("#distCount").textContent = `${s.n} attempt${s.n === 1 ? "" : "s"}`;
+
+    const buckets = [
+      { label: "under 200", test: (ms) => ms < 200 },
+      { label: "200–249", test: (ms) => ms >= 200 && ms < 250 },
+      { label: "250–299", test: (ms) => ms >= 250 && ms < 300 },
+      { label: "300–349", test: (ms) => ms >= 300 && ms < 350 },
+      { label: "350–399", test: (ms) => ms >= 350 && ms < 400 },
+      { label: "400+", test: (ms) => ms >= 400 }
+    ];
+
+    const msList = attempts.map((a) => a.ms);
+    const counts = buckets.map((b) => msList.filter(b.test).length);
+    const top = Math.max(1, ...counts);
+
+    $("#distBars").innerHTML = buckets.map((b, i) => `
+      <div class="bar-row">
+        <span class="bar-label">${b.label}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(counts[i] / top) * 100}%"></div></div>
+        <span class="bar-count">${counts[i]}</span>
+      </div>`).join("");
+
+    const fast = msList.filter((ms) => ms < 230).length;
+    const avg = msList.filter((ms) => ms >= 230 && ms < 320).length;
+    const slow = msList.filter((ms) => ms >= 320).length;
+    const pct = (n) => (s.n ? round((n / s.n) * 100) : 0);
+
+    $("#ratingSplit").innerHTML = [
+      { label: "Fast (< 230 ms)", value: fast, tone: "fast" },
+      { label: "Average (230–319 ms)", value: avg, tone: "avg" },
+      { label: "Slow (320 ms+)", value: slow, tone: "slow" }
+    ].map((item) => `
+      <div class="split-item">
+        <div class="split-value"><span class="rating-pill ${item.tone}" style="padding:0;border:none;background:none;height:auto;">${pct(item.value)}%</span></div>
+        <div class="split-label">${item.label} / ${item.value} attempt${item.value === 1 ? "" : "s"}</div>
+      </div>`).join("");
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Data table + report
+   * ------------------------------------------------------------------ */
+  function renderData() {
+    const s = statsFor(attempts);
+    $("#dataCount").textContent = `${s.n} attempt${s.n === 1 ? "" : "s"}`;
+    $("#footerCount").textContent = `${s.n} attempt${s.n === 1 ? "" : "s"}`;
+
+    if (!attempts.length) {
+      $("#dataBody").innerHTML = '<tr class="empty-row"><td colspan="5">No attempts yet. Run a test to fill the library.</td></tr>';
+      $("#reportPreview").textContent = "No attempts recorded yet.";
+      return;
+    }
+
+    $("#dataBody").innerHTML = attempts
+      .slice()
+      .reverse()
+      .map((a, i) => {
+        const idx = attempts.length - i;
+        const r = ratingFor(a.ms);
+        const delta = s.avg ? round(((a.ms - s.avg) / s.avg) * 100) : 0;
+        const deltaText = `${delta > 0 ? "+" : ""}${delta}%`;
+        return `<tr>
+          <td class="muted">${idx}</td>
+          <td class="mono-strong">${fmtMs(a.ms)} ms</td>
+          <td><span class="rating-pill ${r.tone}" style="height:20px;">${r.label}</span></td>
+          <td class="muted">${deltaText}</td>
+          <td class="muted" style="text-align:right;">${dayLabel(a.at)} ${clock(a.at)}</td>
+        </tr>`;
+      })
+      .join("");
+
+    $("#reportPreview").textContent = buildReport();
+  }
+
+  function buildReport() {
+    const s = statsFor(attempts);
+    if (!s.n) return "No attempts recorded yet.";
+    const lines = [
+      "REFLEX LABS — REACTION TIME REPORT",
+      "=".repeat(42),
+      `Generated: ${new Date().toLocaleString("en-US")}`,
+      `Cue sound: ${soundName()}`,
+      `Delay window: ${(settings.min / 1000).toFixed(1)}s – ${(settings.max / 1000).toFixed(1)}s`,
+      "",
+      `Attempts: ${s.n}`,
+      `Average: ${s.avg} ms`,
+      `Median: ${s.median} ms`,
+      `Best: ${s.best} ms`,
+      `Slowest: ${s.worst} ms`,
+      `Consistency (sd): ${s.sd} ms`,
+      "",
+      "-".repeat(42),
+      "ATTEMPTS (oldest first)",
+      "-".repeat(42)
+    ];
+    attempts.forEach((a, i) => {
+      lines.push(`${String(i + 1).padStart(3, " ")}. ${String(a.ms).padStart(5, " ")} ms   ${ratingFor(a.ms).label}   ${new Date(a.at).toLocaleString("en-US")}`);
+    });
+    return lines.join("\n");
+  }
+
+  function download(filename, text, type) {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadReport() {
+    if (!attempts.length) return toastDialog("Nothing to export", "Run a reaction test first, then export your statistics.");
+    download(`reflex-report-${Date.now()}.txt`, buildReport() + "\n", "text/plain;charset=utf-8");
+  }
+
+  function downloadCsv() {
+    if (!attempts.length) return toastDialog("Nothing to export", "Run a reaction test first, then export your statistics.");
+    const rows = ["index,reaction_ms,rating,recorded_at"];
+    attempts.forEach((a, i) => {
+      rows.push(`${i + 1},${a.ms},${ratingFor(a.ms).label},${new Date(a.at).toISOString()}`);
+    });
+    download(`reflex-attempts-${Date.now()}.csv`, rows.join("\n") + "\n", "text/csv;charset=utf-8");
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Sound library
+   * ------------------------------------------------------------------ */
+  function renderSounds() {
+    $("#soundList").innerHTML = Object.entries(SOUNDS).map(([key, s]) => `
+      <div class="sound-row ${key === settings.sound ? "selected" : ""}" data-sound="${key}" role="button" tabindex="0">
+        <span class="sound-icon"><svg class="icon sm"><use href="#i-music"/></svg></span>
+        <span>
+          <span class="sound-name" style="display:block;">${s.name}</span>
+          <span class="sound-desc">${s.desc}</span>
+        </span>
+        <span class="sound-meta">
+          <button class="btn ghost" style="height:28px;" data-preview="${key}" aria-label="Preview ${s.name}">
+            <svg class="icon sm"><use href="#i-play"/></svg>Play
+          </button>
+          <span class="check-dot"><svg class="icon"><use href="#i-check"/></svg></span>
+        </span>
+      </div>`).join("");
+
+    $$("[data-preview]", $("#soundList")).forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        preloadSounds().then(() => playCue(btn.dataset.preview, true));
+      });
+    });
+
+    $$(".sound-row", $("#soundList")).forEach((row) => {
+      const choose = () => {
+        settings.sound = row.dataset.sound;
+        save();
+        renderSounds();
+        renderDashboard();
+        renderTestMeta();
+        preloadSounds().then(() => playCue(settings.sound, true));
+      };
+      row.addEventListener("click", choose);
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(); }
+      });
+    });
+
+    renderTestMeta();
+  }
+
+  function renderTestMeta() {
+    $("#cueBadge").textContent = `${soundName()}${AUDIO_PREFS.muted ? " / muted" : ""}`;
+    $("#audioSoundName").textContent = soundName();
+    $("#testHintSound").textContent = AUDIO_PREFS.muted ? "Audio muted — watch for the flash" : "Cue plays at your chosen volume";
+    if (phase === "idle") renderSurface();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Settings & controls
+   * ------------------------------------------------------------------ */
+  function syncControls() {
+    $("#minDelay").value = settings.min;
+    $("#maxDelay").value = settings.max;
+    $("#delayHint").textContent = `Current window: ${(settings.min / 1000).toFixed(1)} – ${(settings.max / 1000).toFixed(1)} s`;
+
+    ["#volume", "#volume2"].forEach((sel) => { $(sel).value = AUDIO_PREFS.volume; });
+    $("#volumeLabel").textContent = `${AUDIO_PREFSSafe()}%`;
+    $("#volumeLabel2").textContent = `${AUDIO_PREFSSafe()}%`;
+
+    ["#muteSwitch", "#muteSwitch2"].forEach((sel) => {
+      $(sel).setAttribute("aria-checked", String(AUDIO_PREFS.muted));
+    });
+    const muteIcon = $("#muteIcon");
+    muteIcon.querySelector("use").setAttribute("href", AUDIO_PREFS.muted ? "#i-volume-x" : "#i-volume-2");
+    $("#muteBtn").classList.toggle("is-muted", AUDIO_PREFS.muted);
+    $("#muteBtn").setAttribute("aria-label", AUDIO_PREFS.muted ? "Unmute sound" : "Mute sound");
+    $("#muteBtn").title = AUDIO_PREFS.muted ? "Unmute sound" : "Mute sound";
+
+    $("#rangeSelect").value = settings.range;
+    $("#dataCount").textContent = `${attempts.length} attempt${attempts.length === 1 ? "" : "s"}`;
+  }
+
+  function AUDIO_PREFSSafe() {
+    return clamp(round(AUDIO_PREFS.volume), 0, 100);
+  }
+
+  function setMuted(next) {
+    AUDIO_PREFS.muted = next;
+    saveAudioPrefs();
+    syncControls();
+    renderTestMeta();
+  }
+
+  function saveAudioPrefs() {
+    try { localStorage.setItem(STORE_KEY + ".audio", JSON.stringify(AUDIO_PREFS)); } catch (err) {}
+  }
+
+  function loadAudioPrefs() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY + ".audio");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Number.isFinite(parsed.volume)) AUDIO_PREFS.volume = clamp(parsed.volume, 0, 100);
+        AUDIO_PREFS.muted = Boolean(parsed.muted);
+      }
+    } catch (err) {}
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Dialog
+   * ------------------------------------------------------------------ */
+  let dialogOpen = false;
+
+  function openDialog({ title, desc, body, actions }) {
+    $("#dialogTitle").textContent = title;
+    $("#dialogDesc").textContent = desc || "";
+    $("#dialogBody").innerHTML = body || "";
+    const foot = $("#dialogFoot");
+    foot.innerHTML = "";
+    (actions || []).forEach((action) => {
+      const btn = document.createElement("button");
+      btn.className = `btn ${action.variant || "secondary"}`;
+      btn.textContent = action.label;
+      btn.addEventListener("click", () => {
+        if (action.keepOpen) { action.onClick && action.onClick(); return; }
+        closeDialog();
+        action.onClick && action.onClick();
+      });
+      foot.appendChild(btn);
+    });
+    $("#overlay").hidden = false;
+    dialogOpen = true;
+    const first = foot.querySelector(".btn");
+    if (first) first.focus();
+  }
+
+  function closeDialog() {
+    $("#overlay").hidden = true;
+    dialogOpen = false;
+  }
+
+  function toastDialog(title, desc) {
+    openDialog({ title, desc, actions: [{ label: "Okay", variant: "secondary" }] });
+  }
+
+  function openMore() {
+    openDialog({
+      title: "Reflex Labs",
+      desc: "Reaction time tester / v2.0",
+      body: `
+        <div class="shortcut-row"><span>Start or react</span><kbd>Space</kbd></div>
+        <div class="shortcut-row"><span>Cancel a pending cue</span><kbd>Esc</kbd></div>
+        <div class="shortcut-row"><span>Retry immediately</span><kbd>Space</kbd></div>
+        <div style="margin-top:14px;font-size:11.5px;color:hsl(0 0% 46%);line-height:1.7;">
+          Cue sounds are real recordings from the Google Actions sound library.<br />
+          Results are stored locally in this browser only.
+        </div>`,
+      actions: [
+        { label: "Close", variant: "secondary" },
+        { label: "Data Library", variant: "ghost", onClick: () => setView("data") }
+      ]
+    });
+  }
+
+  function confirmClear() {
+    openDialog({
+      title: "Clear all statistics?",
+      desc: `${attempts.length} attempt${attempts.length === 1 ? "" : "s"} will be permanently removed from this browser.`,
+      actions: [
+        { label: "Cancel", variant: "secondary" },
+        {
+          label: "Clear everything",
+          variant: "destructive",
+          onClick: () => {
+            attempts = [];
+            lastAttempt = null;
+            phase = "idle";
+            save();
+            renderSurface();
+            renderAll();
+          }
         }
+      ]
+    });
+  }
 
-        function loadFromStorage() {
-            const stored = localStorage.getItem('reactionTimeAttempts');
-            if (stored) {
-                testState.attempts = JSON.parse(stored);
-                updateStats();
-            }
-        }
+  /* ------------------------------------------------------------------ *
+   * View switching
+   * ------------------------------------------------------------------ */
+  const TITLES = {
+    dashboard: "Dashboard",
+    test: "Reaction Test",
+    analytics: "Analytics",
+    settings: "Settings",
+    data: "Data Library",
+    reports: "Reports",
+    sounds: "Sound Library"
+  };
 
-        function downloadStats() {
-            const attempts = testState.attempts;
-            if (attempts.length === 0) {
-                alert('No statistics to download. Run some tests first!');
-                return;
-            }
+  function setView(name) {
+    if (!TITLES[name]) return;
+    currentView = name;
+    $$(".view").forEach((view) => view.classList.toggle("active", view.dataset.view === name));
+    $$(".nav-item[data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === name));
+    $("#pageTitle").textContent = TITLES[name];
+    document.body.classList.remove("sidebar-open");
+    if (name !== "test" && (phase === "waiting" || phase === "go")) {
+      clearTimers();
+      phase = "idle";
+      renderSurface();
+    }
+    if (name === "dashboard") requestAnimationFrame(renderChart);
+    if (name === "sounds") renderSounds();
+    window.scrollTo(0, 0);
+  }
 
-            const avg = Math.round(attempts.reduce((a, b) => a + b) / attempts.length);
-            const best = Math.min(...attempts);
-            const worst = Math.max(...attempts);
-            const date = new Date().toLocaleString();
+  /* ------------------------------------------------------------------ *
+   * Render everything
+   * ------------------------------------------------------------------ */
+  function renderAll() {
+    renderDashboard();
+    renderTestStats();
+    renderAnalytics();
+    renderData();
+    syncControls();
+    renderTestMeta();
+  }
 
-            let content = 'REACTION TIME TEST STATISTICS\n';
-            content += '='.repeat(50) + '\n\n';
-            content += `Generated: ${date}\n`;
-            content += `Total Attempts: ${attempts.length}\n`;
-            content += `Average Time: ${avg}ms\n`;
-            content += `Best Time: ${best}ms\n`;
-            content += `Worst Time: ${worst}ms\n`;
-            content += '\n' + '='.repeat(50) + '\n';
-            content += 'ATTEMPT HISTORY\n';
-            content += '='.repeat(50) + '\n\n';
-            attempts.forEach((time, i) => {
-                content += `Attempt ${i + 1}: ${time}ms\n`;
-            });
+  /* ------------------------------------------------------------------ *
+   * Wiring
+   * ------------------------------------------------------------------ */
+  function bind() {
+    $$(".nav-item[data-view]").forEach((item) => {
+      item.addEventListener("click", () => setView(item.dataset.view));
+    });
+    $$("[data-goto]").forEach((btn) => btn.addEventListener("click", () => setView(btn.dataset.goto)));
 
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `reaction-times-${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
+    $("#quickTest").addEventListener("click", () => {
+      setView("test");
+      setTimeout(startTest, 60);
+    });
 
-        document.addEventListener('click', () => {
-            if (audioContext.state === 'suspended') audioContext.resume();
-        });
+    $("#menuBtn").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+    $("#sidebarOverlay").addEventListener("click", () => document.body.classList.remove("sidebar-open"));
 
-        loadFromStorage();
-        lucide.createIcons();
-    </script>
+    $("#surface").addEventListener("click", handlePrimary);
+    $("#surface").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); handlePrimary(); }
+    });
+
+    $("#rangeSelect").addEventListener("change", (e) => {
+      settings.range = e.target.value;
+      save();
+      renderDashboard();
+    });
+
+    [$("#minDelay"), $("#maxDelay")].forEach((input) => {
+      input.addEventListener("change", () => {
+        let min = clamp(Number($("#minDelay").value) || 1000, 300, 20000);
+        let max = clamp(Number($("#maxDelay").value) || 5000, 400, 30000);
+        if (max <= min + 100) max = min + 100;
+        settings.min = min;
+        settings.max = max;
+        save();
+        syncControls();
+        if (phase === "idle") renderSurface();
+      });
+    });
+
+    ["#volume", "#volume2"].forEach((sel) => {
+      $(sel).addEventListener("input", (e) => {
+        AUDIO_PREFS.volume = clamp(Number(e.target.value), 0, 100);
+        saveAudioPrefs();
+        syncControls();
+      });
+    });
+
+    $("#muteSwitch").addEventListener("click", () => setMuted(!AUDIO_PREFS.muted));
+    $("#muteSwitch2").addEventListener("click", () => setMuted(!AUDIO_PREFS.muted));
+    $("#muteBtn").addEventListener("click", () => setMuted(!AUDIO_PREFS.muted));
+
+    $("#previewBtn").addEventListener("click", () => {
+      preloadSounds().then(() => playCue(settings.sound, true));
+    });
+
+    $("#clearBtn").addEventListener("click", confirmClear);
+    $("#csvBtn").addEventListener("click", downloadCsv);
+    $("#csvBtn2").addEventListener("click", downloadCsv);
+    $("#txtBtn").addEventListener("click", downloadReport);
+
+    $("#moreBtn").addEventListener("click", openMore);
+    $("#dialogClose").addEventListener("click", closeDialog);
+    $("#overlay").addEventListener("click", (e) => { if (e.target === $("#overlay")) closeDialog(); });
+
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target.tagName || "").toLowerCase();
+      const typing = tag === "input" || tag === "select" || tag === "textarea" || e.target.isContentEditable;
+
+      if (e.key === "Escape") {
+        if (dialogOpen) { closeDialog(); return; }
+        if (phase === "waiting") cancelTest();
+        return;
+      }
+      if (typing || dialogOpen) return;
+      if (e.repeat) return;
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        handlePrimary();
+      }
+    });
+
+    document.addEventListener("click", () => {
+      preloadSounds();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    }, { passive: true });
+
+    const ro = new ResizeObserver(() => {
+      if (currentView === "dashboard") renderChart();
+    });
+    ro.observe($("#chart").parentElement);
+    window.addEventListener("resize", renderChart);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Boot
+   * ------------------------------------------------------------------ */
+  load();
+  loadAudioPrefs();
+  bind();
+  setView("dashboard");
+  renderAll();
+  renderSurface();
+  preloadSounds();
+  window.addEventListener("load", () => {
+    preloadSounds();
+    renderChart();
+    if (phase === "idle") renderSurface();
+  });
+})();
+</script>
 </body>
 </html>
